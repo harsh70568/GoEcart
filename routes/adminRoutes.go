@@ -17,5 +17,8 @@ func AdminRoutes(router *gin.Engine) {
 		// admin.GET("/profile", middleware.AdminAuth(), controllers.AdminProfile())
 		// admin.GET("/adminvalidate", middleware.AdminAuth(), controllers.ValidateAdmin())
 
+		/* Specification management routes */
+		admin.PUT("/brand/editbrand/:id", middleware.AdminAuth(), controllers.EditBrand())
+		admin.GET("/brand", middleware.AdminAuth(), controllers.GetBrand())
 	}
 }
