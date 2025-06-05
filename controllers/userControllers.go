@@ -1,10 +1,12 @@
 package controllers
 
 import (
+	"fmt"
 	"goEcart/db"
 	"goEcart/models"
 	"goEcart/utils"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -91,5 +93,76 @@ func UserLogin() gin.HandlerFunc {
 			"id":      user.ID,
 			"token":   token,
 		})
+	}
+}
+
+func ViewAllUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var allUser []models.User
+		// @TODO - If you only want to retrieve some columns from the table
+		if err := db.DB.Find(&allUser).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "erorr in getting all users"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message": "All users fetched succesfully",
+			"data":    allUser,
+		})
+	}
+}
+
+func AdminSearchUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		uId := c.Query("user_id")
+		id, err := strconv.Atoi(uId)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error in converting id"})
+			return
+		}
+
+		/* Check if ID does exists or not */
+		var existingUser models.User
+		if err := db.DB.Where("id = ?", id).First(&existingUser).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("User with ID %d does not exists", id)})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message":   "success",
+			"user_data": existingUser,
+		})
+	}
+}
+
+func AdminBlockUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		uId := c.Query("user_id")
+		id, err := strconv.Atoi(uId)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error in converting id"})
+			return
+		}
+
+		/* Check if ID does exists or not */
+		var existingUser models.User
+		if err := db.DB.Where("id = ?", id).First(&existingUser).Error; err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Used with ID %d does not exists", id)})
+			return
+		}
+
+		if existingUser.IsBlocked {
+			if err := db.DB.Model(&models.User{}).Where("id = ?", id).Update("isBlocked", false).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "error in updating in database"})
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{"message": "User Unblocked"})
+		} else { /* false condition */
+			if err := db.DB.Model(&models.User{}).Where("id = ?", id).Update("isBlocked", true).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "error in updating in database"})
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{"message": "User Blocked"})
+		}
 	}
 }
