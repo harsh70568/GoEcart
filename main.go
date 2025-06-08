@@ -1,12 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"goEcart/db"
 	"goEcart/routes"
+	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 )
 
 func main() {
@@ -21,11 +20,7 @@ func main() {
 	routes.UserRoutes(router)
 
 	/* Run the server */
-	viper.SetConfigFile(".env")
-	if err := viper.ReadInConfig(); err != nil {
-		fmt.Println("Error reading the env file...")
-	}
-	PORT := viper.GetString("PORT")
+	PORT := os.Getenv("PORT")
 	if PORT == "" {
 		PORT = ":8080"
 	}

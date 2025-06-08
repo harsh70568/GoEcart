@@ -1,14 +1,23 @@
 package controllers
 
 import (
+	"fmt"
 	"goEcart/db"
 	"goEcart/models"
 	"goEcart/utils"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
+
+type ProfileData struct {
+	Firstname   string
+	Lastname    string
+	Email       string
+	PhoneNumber string
+}
 
 func AdminSignup() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -93,5 +102,38 @@ func AdminLogout() gin.HandlerFunc {
 		c.SetCookie("token", "", -1, "/", "localhost", false, true)
 
 		c.JSON(http.StatusOK, gin.H{"message": "Logout sucesfully"})
+	}
+}
+
+func AdminEditUserProfile() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		uID := c.Param("id")
+		id, err := strconv.Atoi(uID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error in converting user id"})
+			return
+		}
+		var profileData ProfileData
+		if err := c.ShouldBindJSON(&profileData); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid body request"})
+			return
+		}
+
+		/* Check if requested ID does exists or not */
+		var existingUser models.User
+		if err := db.DB.Where("id = ?", id).First(&existingUser).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("User with ID %d does not exists", id)})
+			return
+		}
+		existingUser.FirstName = profileData.Firstname
+		existingUser.LastName = profileData.Lastname
+		existingUser.PhoneNumber = profileData.PhoneNumber
+
+		if err := db.DB.Save(&existingUser).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "error in updating values"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Profile updated succesfully"})
 	}
 }
