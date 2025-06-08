@@ -19,7 +19,7 @@ type User struct {
 }
 
 type Address struct {
-	ID         uint   `json:"id" gorm:"primaryKey;unique"`
+	ID         uint   `json:"id" gorm:"primaryKey;autoIncrement"`
 	UserID     uint   `gorm:"not null"`
 	Name       string `json:"name" gorm:"not null"`
 	Phoneno    string `json:"phoneno" gorm:"not null"`

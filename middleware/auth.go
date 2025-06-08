@@ -40,3 +40,31 @@ func AdminAuth() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+func UserAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		tokenStr, err := c.Cookie("token")
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid access"})
+			c.Abort()
+			return
+		}
+
+		/* Parse and verify JWT */
+		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, jwt.ErrSignatureInvalid
+			}
+			return jwtSecret, nil
+		})
+
+		/* Validate it */
+		if err != nil || !token.Valid {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid access"})
+			c.Abort()
+			return
+		}
+
+		c.Next()
+	}
+}
