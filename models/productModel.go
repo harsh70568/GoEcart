@@ -1,12 +1,12 @@
 package models
 
 type Category struct {
-	ID           uint   `json:"id" gorm:"primaryKey"`
+	ID           uint   `json:"id" gorm:"primaryKey;autoIncrement"`
 	CategoryName string `json:"category_name" gorm:"not null"`
 }
 
 type Brand struct {
-	ID        uint   `json:"id" gorm:"primaryKey"`
+	ID        uint   `json:"id" gorm:"primaryKey;autoIncrement"`
 	BrandName string `json:"brand_name" gorm:"not null"`
 }
 
